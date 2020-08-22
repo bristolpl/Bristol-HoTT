@@ -33,11 +33,11 @@
 -- Standard groupoid laws.
 
 \func idp_*> {A : \Type} {x y : A} (p : x = y) : idp *> p = p
-  => idp
+  \elim p
+    | idp => idp
 
 \func *>_idp {A : \Type} {x y : A} (p : x = y) : p *> idp = p
-  \elim p
-  | idp => idp
+  => idp
 
 \func *>_inv {A : \Type} {x y : A} (p : x = y) : p *> (p `inv) = idp
   \elim p
