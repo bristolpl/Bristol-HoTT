@@ -1,0 +1,63 @@
+-- Here are some standard definitions that hopefully do not compute too much.
+
+\func id {A : \Type} (x : A) : A => x
+
+\func J {A : \Type} (C : \Pi (x y : A) (p : x = y) -> \Type)
+        (f : \Pi (x : A) -> C x x idp) (x y : A) (p : x = y) : C x y p
+  \elim p
+    | idp => f(x)
+
+\func transport {A : \Type} (B : A -> \Type) {x y : A} (p : x = y) : B x -> B y =>
+  J (\lam x y p => B x -> B y) (\lam x => id) x y p
+
+\func ap {A B : \Type} (f : A -> B) {x y : A} (p : x = y) : f x = f y
+  \elim p
+    | idp => idp
+
+-- Groupoid structure.
+
+\func \fix 2 qed {A : \Type} (a : A) : a = a => idp
+
+\func \infixr 9 *> {A : \Type} {x y z : A} (p : x = y) (q : y = z) : x = z
+  \elim p
+    | idp => q
+
+\func \infixr 9 <* {A : \Type} {x y z : A} (p : x = y) (q : y = z) : x = z
+  \elim q
+    | idp => p
+
+\func inv {A : \Type} {a a' : A} (p : a = a') : a' = a
+  \elim p
+    | idp => idp
+
+-- Standard groupoid laws.
+
+\func idp_*> {A : \Type} {x y : A} (p : x = y) : idp *> p = p
+  => idp
+
+\func *>_idp {A : \Type} {x y : A} (p : x = y) : p *> idp = p
+  \elim p
+  | idp => idp
+
+\func *>_inv {A : \Type} {x y : A} (p : x = y) : p *> (p `inv) = idp
+  \elim p
+    | idp => idp
+
+\func inv_*> {A : \Type} {x y : A} (p : x = y) : (p `inv) *> p = idp
+  \elim p
+    | idp => idp
+
+-- Every function is a functor.
+
+\func ap_id {A B : \Type} (f : A -> B) {x : A} : ap f {x} {x} idp = idp
+  => idp
+
+\func ap_compose {A B : \Type} (f : A -> B) {x y z : A} (p : x = y) (q : y = z)
+    : ap f (p *> q) = ap f p *> ap f q
+  \elim p
+    | idp => idp
+
+\func ap_inv {A B : \Type} (f : A -> B) {x y : A} (p : x = y)
+    : ap f (p `inv) = (ap f p) `inv
+  \elim p
+    | idp => idp
