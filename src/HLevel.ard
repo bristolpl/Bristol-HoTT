@@ -1,0 +1,30 @@
+\import BristolPrelude
+\import Prelude
+
+-- Basic homotopy levels
+
+-- Mere propositions
+
+\func isProp (A : \Type) => \Pi (a a' : A) -> a = a'
+
+-- The type class of contractible types
+
+\class Contr
+  | A : \Type
+  | center : A
+  | contraction : \Pi (a' : A) -> center = a'
+    \where {
+      \func make {A : \Type} (a : A) (p : \Pi (a' : A) -> a = a')  => \new Contr A a p
+    }
+
+\func isContr=>isProp {A : \Type} (c : Contr A) : isProp A
+  =>
+    \lam x y =>  (c.contraction x) `inv *> c.contraction y
+
+\func type=>isContr=>isProp {A : \Type} (c : A -> Contr A) : isProp A
+  =>
+    \lam a => isContr=>isProp (c a) a
+
+\func isProp=>isContr {A : \Type} (p : isProp A) (a : A) : Contr A
+  =>
+    Contr.make a (p a)

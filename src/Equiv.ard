@@ -1,0 +1,47 @@
+\import BristolPrelude
+\import Fibre
+
+-- HoTT equivalances.
+
+\record Map {A B : \Type} (f : A -> B)
+
+-- The Voevodsky definition: a map is an equivalence if it has contractible fibres.
+
+\record EquivFib (P : hasContrFibres {A} {B} f) \extends Map
+
+-- The half-adjoint definition: a section and a retraction that are coherent.
+-- This is the most useful, and hence the canonical definition of an equivalence.
+
+\record Section (retr : B -> A) (eta : \Pi (x : A) -> retr (f x) = x) \extends Map
+
+\record Retraction (sect : B -> A) (epsilon : \Pi (y : B) -> f (sect y) = y) \extends Map
+
+\record QuasiInv \extends Section, Retraction
+  | retr => sect
+
+\record Equiv \extends QuasiInv
+  | coh : \Pi (x : A) -> ap f (eta x) = epsilon (f x)
+
+-- The identity equivalence
+
+\func idEquiv {A : \Type} : Equiv \cowith
+  | A => A
+  | B => A
+  | f x => x
+  | sect x => x       -- we need not give a retraction: it's just the section
+  | eta x => idp
+  | epsilon x => idp
+  | coh x => idp
+
+-- The adjointification theorem
+
+\func equiv-adjointify (f : QuasiInv) : Equiv
+  \cowith
+    | A => f.A
+    | B => f.B
+    | f => f.f
+    | sect => f.sect
+    | eta => f.eta
+    | epsilon y => f.epsilon (f.f (f.sect y)) `inv *> ap f.f (f.eta (f.sect y)) *> f.epsilon y
+    | coh x => {?}
+

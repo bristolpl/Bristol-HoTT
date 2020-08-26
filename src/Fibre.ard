@@ -1,0 +1,16 @@
+\import HLevel
+
+-- Fibre of a function
+
+\func Fibre {A B : \Type} (f : A -> B) (b : B)
+  =>
+    \Sigma (a : A) (f a = b)
+  \where {
+    \func make {A B : \Type} (f : A -> B) {b : B} (a : A) (p : f a = b) : Fibre f b
+      =>
+        (a, p)
+  }
+
+\func hasContrFibres {A B : \Type} (f : A -> B)
+  =>
+    \Pi (b : B) -> Contr (Fibre f b)
