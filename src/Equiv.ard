@@ -3,7 +3,7 @@
 
 -- HoTT equivalances.
 
-\record Map {A B : \Type} (f : A -> B)
+\record Map (A B : \Type) (f : A -> B)
 
 -- The Voevodsky definition: a map is an equivalence if it has contractible fibres.
 
@@ -19,29 +19,23 @@
 \record QuasiInv \extends Section, Retraction
   | retr => sect
 
-\record Equiv \extends QuasiInv
+\record Equiv \alias \infix 7 <~> \extends QuasiInv
   | coh : \Pi (x : A) -> ap f (eta x) = epsilon (f x)
+  \where
+    -- Adjointification: turns a quasi-inverse into a (half-adjoint) equivalence
+    \use \coerce equiv-adjointify {A B : \Type} (f : QuasiInv A B) : A <~> B
+      \cowith
+        | f => f.f
+        | sect => f.sect
+        | eta => f.eta
+        | epsilon y => f.epsilon (f.f (f.sect y)) `inv *> ap f.f (f.eta (f.sect y)) *> f.epsilon y
+        | coh x => {?}
 
 -- The identity equivalence
 
-\func idEquiv {A : \Type} : Equiv \cowith
-  | A => A
-  | B => A
+\func idEquiv {A : \Type} : A <~> A \cowith
   | f x => x
   | sect x => x       -- we need not give a retraction: it's just the section
   | eta x => idp
   | epsilon x => idp
   | coh x => idp
-
--- The adjointification theorem
-
-\func equiv-adjointify (f : QuasiInv) : Equiv
-  \cowith
-    | A => f.A
-    | B => f.B
-    | f => f.f
-    | sect => f.sect
-    | eta => f.eta
-    | epsilon y => f.epsilon (f.f (f.sect y)) `inv *> ap f.f (f.eta (f.sect y)) *> f.epsilon y
-    | coh x => {?}
-
