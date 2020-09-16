@@ -1,14 +1,52 @@
 -- Here are some standard definitions that hopefully do not compute too much.
+-- QUESTION: surely we wanna make the Bristol Prelude consist of different modules
+--           that follow the grouping of the book, or another logical grouping?
 
+{- | Identity function. -}
 \func id {A : \Type} (x : A) : A => x
 
-\func J {A : \Type} (C : \Pi (x y : A) (p : x = y) -> \Type)
-        (f : \Pi (x : A) -> C x x idp) (x y : A) (p : x = y) : C x y p
-  \elim p
-    | idp => f(x)
+{- | Identity path formation.
+ -
+ - (Wrapper around the Arend prelude {idp} to match HoTT book naming.)
+ -
+ - QUESTION: what is happening?
+ -  -}
+\func refl {A : \Type} {a : A} : a = a => idp
 
-\func transport {A : \Type} (B : A -> \Type) {x y : A} (p : x = y) : B x -> B y =>
-  J (\lam x y p => B x -> B y) (\lam x => id) x y p
+{- | Path induction.
+ -
+ - Induction principle for paths: takes proof of a property (that takes the form
+ - of the type class C) at refl and extrapolates that this property / type class
+ - holds for all paths.
+ -
+ - -}
+\func J {A : \Type}                              -- Base space of property.
+        (C : \Pi (x y : A) (p : x = y) -> \Type) -- Property to prove.
+        (f : \Pi (x : A) -> C x x idp)           -- Proof at refl.
+        -- Way of constructing proof of property for any path.
+        (x y : A)   -- End points of path in question.
+        (p : x = y) -- Path.
+        : C x y p   -- Proof of property on path / application of type fam.
+  \elim p
+    | idp => f(x) -- QUESTION: I don't like how shit is going on under the hood,
+                  -- and how the Arend prelude says this is wrong.
+
+{- | Transportation.
+ -
+ - Transports a path from base space A through a type fam to create a path in the
+ - total space of that type fam.
+ -
+ - -}
+\func transport {A : \Type}      -- Base space.
+                (B : A -> \Type) -- Type fam to transport along.
+                {x y : A}        -- Points at end points of path in base space.
+                (p : x = y)      -- Path to transport.
+                : B x -> B y     -- Transported path. (Lives in total space)
+  => J (\lam x y p => B x -> B y) (\lam x => id) x y p
+  -- Implemented via the induction principle on paths.
+  -- i.e. we just show for refl,
+  -- then we get the whole bifta,
+  -- which we can apply to our path :D
 
 \func ap {A B : \Type} (f : A -> B) {x y : A} (p : x = y) : f x = f y
   \elim p
