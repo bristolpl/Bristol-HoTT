@@ -48,54 +48,69 @@
   -- then we get the whole bifta,
   -- which we can apply to our path :D
 
+-- -----------------------------------------------------------------------------
+-- FUNCTOR
+-- -----------------------------------------------------------------------------
+
+{- | Translates a path between spaces along a function f : A -> B.
+-
+- This function encapsulates how functions behave functorially on paths
+- i.e. how paths are preserved by functions between spaces, and thus you can translate
+-      a path in one space to another
+- -}
 \func ap {A B : \Type} (f : A -> B) {x y : A} (p : x = y) : f x = f y
   \elim p
     | idp => idp
+    -- Use path induction to pattern match on the refl case, where path translation is trivial.
+
+-- Functor laws:
+-- Just read {ap f} as {fmap f}
+{- | Identity functor law .-}
+\func ap_id {A B : \Type} (f : A -> B) {x : A} : ap f {x} {x} idp = idp
+  => idp
+{- | Composition functor law .-}
+\func ap_compose {A B : \Type} (f : A -> B) {x y z : A} (p : x = y) (q : y = z)
+  : ap f (p *> q) = ap f p *> ap f q
+\elim q
+  | idp => idp
+
+\func ap_inv {A B : \Type} (f : A -> B) {x y : A} (p : x = y)
+  : ap f (p `inv) = (ap f p) `inv
+\elim p
+  | idp => idp
+
+-- -----------------------------------------------------------------------------
+-- GROUPOID
+-- -----------------------------------------------------------------------------
 
 -- Groupoid structure.
-
+-- i.e how paths form the morphisms of a category where every morphism is invertable.
+{- | Identity Path .-}
 \func \fix 2 qed {A : \Type} (a : A) : a = a => idp
-
+{- | Path Composition .-}
+-- QUESTION: why are there two?
 \func \infixr 9 *> {A : \Type} {x y z : A} (p : x = y) (q : y = z) : x = z
   \elim q
     | idp => p
-
 \func \infixr 9 <* {A : \Type} {x y z : A} (p : x = y) (q : y = z) : x = z
   \elim p
     | idp => q
-
+{- | Path Inversion .-}
 \func \fix 10 inv {A : \Type} {a a' : A} (p : a = a') : a' = a
   \elim p
     | idp => idp
 
 -- Standard groupoid laws.
-
+-- Composing with id does nothing
 \func idp_*> {A : \Type} {x y : A} (p : x = y) : idp *> p = p
   \elim p
     | idp => idp
-
 \func *>_idp {A : \Type} {x y : A} (p : x = y) : p *> idp = p
   => idp
-
+-- Composing with inversion is same as id
 \func *>_inv {A : \Type} {x y : A} (p : x = y) : p *> p `inv = idp
   \elim p
     | idp => idp
-
 \func inv_*> {A : \Type} {x y : A} (p : x = y) : p `inv *> p = idp
-  \elim p
-    | idp => idp
-
--- Every function is a functor.
-
-\func ap_id {A B : \Type} (f : A -> B) {x : A} : ap f {x} {x} idp = idp
-  => idp
-
-\func ap_compose {A B : \Type} (f : A -> B) {x y z : A} (p : x = y) (q : y = z)
-    : ap f (p *> q) = ap f p *> ap f q
-  \elim q
-    | idp => idp
-
-\func ap_inv {A B : \Type} (f : A -> B) {x y : A} (p : x = y)
-    : ap f (p `inv) = (ap f p) `inv
   \elim p
     | idp => idp

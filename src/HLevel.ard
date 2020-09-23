@@ -3,27 +3,48 @@
 -- Basic homotopy levels
 
 -- Mere propositions
-
+-- There exists a path between every pair of points in a space.
 \func isProp (A : \Type) => \Pi (a a' : A) -> a = a'
 
 -- The type class of contractible types
 
 \class Contr
-  | A : \Type
-  | center : A
-  | contraction : \Pi (a' : A) -> center = a'
+  | A : \Type  -- Space that is contractible
+  | center : A -- Point that is the centre of contraction
+  | contraction : \Pi (a' : A) -> center = a' -- existence of path between every point and centre point
     \where {
+      -- QUESTION: I can see this is a constructor, but where did you find this?
       \func make {A : \Type} (a : A) (p : \Pi (a' : A) -> a = a')  => \new Contr A a p
     }
 
-\func isContr=>isProp {A : \Type} (c : Contr A) : isProp A
+-- Proof that if something is contractible, then it is a mere prop
+\func isContr=>isProp {A : \Type}
+                      (c : Contr A) -- Gimme something contractible
+                      : isProp A    -- I will construct a proof that it is a mere prop
   =>
-    \lam x y =>  (c.contraction x) `inv *> c.contraction y
+    \lam x y => (c.contraction x) `inv *> c.contraction y
+    -- To show that any two points are equal, I will compose together their paths
+    -- to the centre of contraction, thus connecting them:
+    --
+    --     c.contraction x    c.contraction y
+    --           |                |
+    --        x ------- c.centre ------- y
+    --        ---------------------------
+    --                      |
+    -- (c.contraction x) `inv *> c.contraction y
 
+
+-- Wrapper around {isContr=>isProp} that instead takes a function that constructs
+-- a contractibility proof for and A. This just applies the function and passes the
+-- result on.
 \func type=>isContr=>isProp {A : \Type} (c : A -> Contr A) : isProp A
   =>
     \lam a => isContr=>isProp (c a) a
 
+-- Takes a mereProp proof and creates a isContr proof from it. Since all points
+-- are already all interconnected, any point can be provided as the centre of
+-- contraction.
+-- NOTE:- this centre point must be provided because
 \func isProp=>isContr {A : \Type} (p : isProp A) (a : A) : Contr A
   =>
     Contr.make a (p a)
