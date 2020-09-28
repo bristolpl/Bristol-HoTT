@@ -1,25 +1,88 @@
+{-
+Contains the HoTT characterisation of what it means to be an equivalence.
+
+Two types (A and B) are equivalent if there are functions (f:A->B and g:B->A)
+to take you between them that satisfy the following homotopies:
+  (f . g ∼ idB)
+  (g . f ∼ idA)
+Equivalences should be mere propositions.
+i.e. they should contain no extra information on top of the equivalence.
+
+There are three main definitions of a HoTT equivalence:
+     * contractible functions
+     * half adjoint equivalences
+     * bi-invertible maps
+
+ -}
+
 \import BristolPrelude
 \import Fibre
 
--- HoTT equivalances.
+-- -----------------------------------------------------------------------------
+-- MAP
+-- -----------------------------------------------------------------------------
 
+{- | A function between two types. -}
 \record Map (A B : \Type) (f : A -> B)
 
+-- -----------------------------------------------------------------------------
+-- CONTRACTIBLE FUNCTIONS
+-- -----------------------------------------------------------------------------
 -- The Voevodsky definition: a map is an equivalence if it has contractible fibres.
 
+{- Contractible Function.
+ -
+ - A simple definition that extends a Map (f : A -> B) with proof that its fibres
+ - are contractible, making it a mere prop, and thus an equivalence.
+ -
+ - -}
 \record EquivFib (P : hasContrFibres {A} {B} f) \extends Map
 
+-- -----------------------------------------------------------------------------
+-- HALF-ADJOINT
+-- -----------------------------------------------------------------------------
 -- The half-adjoint definition: a section and a retraction that are coherent.
+--
+-- In other words, a way back function (g : B -> A) is provided, which obeys the
+-- homotopies:
+--       eta : (g . f ∼ idA)
+--   epsilon : (f . g ∼ idB)
+-- such that they interact as characterised by:
+--       coh : ∏x:A ( f(eta x) = epsilon (f x) )
 -- This is the most useful, and hence the canonical definition of an equivalence.
 
+-- We define these in two parts:
+
+{- Introduces {retr} that satisfies (g . f ∼ idA). -}
 \record Section (retr : B -> A) (eta : \Pi (x : A) -> retr (f x) = x) \extends Map
 
+{- Introduces {sect} that satisfies (f . g ∼ idB). -}
 \record Retraction (sect : B -> A) (epsilon : \Pi (y : B) -> f (sect y) = y) \extends Map
 
+-- Which are unified as follows:
+
+{- Unification of {retr} and {sect}.
+ -
+ - This tells us that {retr} and {sect} are the same function g : B -> A, which is
+ - the inverse of f.
+ -}
 \record QuasiInv \extends Section, Retraction
   | retr => sect
 
+-- And bundled with coherence to form the equivalence:
+
+{- Half-Adjoint Inverse.
+ -
+ - Consgtsist of:
+ -   * a map (f : A -> B)
+ -   * its inverse (g : B -> A) (called {retr}/{sect})
+ -   * That obeys round-tripping homotopies:
+ -       - eta : (g . f ∼ idA)
+ -       - epsilon : (f . g ∼ idB)
+ -     s.t they are coherent as specified by {coh}
+ -}
 \record Equiv \alias \infix 7 <~> \extends QuasiInv
+  -- Adds final piece of the puzzle: the coherence.
   | coh : \Pi (x : A) -> ap f (eta x) = epsilon (f x)
   \where
     -- Adjointification: turns a quasi-inverse into a (half-adjoint) equivalence
@@ -29,13 +92,20 @@
         | sect => f.sect
         | eta => f.eta
         | epsilon y => f.epsilon (f.f (f.sect y)) `inv *> ap f.f (f.eta (f.sect y)) *> f.epsilon y
-        | coh x => {?}
+        | coh x => {?} -- TODO:- Fill me in, I should be some well thought through compositions.
 
 -- The identity equivalence
 
+-- -----------------------------------------------------------------------------
+-- IDENTITY EQUIV
+-- -----------------------------------------------------------------------------
+-- Any type is equivalent to itself.
+
+{- Identity Equivalence. -}
 \func idEquiv {A : \Type} : A <~> A \cowith
+  -- Constructed by providing each part of the hae record:
   | f x => x
-  | sect x => x       -- we need not give a retraction: it's just the section
+  | sect x => x -- we need not give a retraction: it's just the section
   | eta x => idp
   | epsilon x => idp
   | coh x => idp

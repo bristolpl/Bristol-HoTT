@@ -1,16 +1,33 @@
+{-
+This module contains a characterisation of the fibres of a function, so that we
+can consider them individually and whether they are contractible.
+ -}
 \import HLevel
 
--- Fibre of a function
-
-\func Fibre {A B : \Type} (f : A -> B) (b : B)
-  =>
-    \Sigma (a : A) (f a = b)
+{- | Fibre of a function.
+ -
+ - Describes a point in A, that with f applied to it is equal to a point b in B.
+ -
+ - -}
+\func Fibre {A B : \Type} -- Types f is parametrised over.
+            (f : A -> B)  -- Function in question.
+            (b : B)       -- Target point in B.
+  => \Sigma (a : A) (f a = b) -- An a:A and proof that it is equal to b in the form of a path.
   \where {
+    -- Uniform way of constructing a Fibre that is accessed in OOPs style
     \func make {A B : \Type} (f : A -> B) {b : B} (a : A) (p : f a = b) : Fibre f b
       =>
         (a, p)
   }
 
+{- | Property that a function as contractible fibres.
+ -
+ - i.e. All points in each fibre are connected to a central point, the centre of
+ -      contraction, which they can be collapsed into.
+ -
+ - Any function with this property is an equivalence.
+ -
+ - -}
 \func hasContrFibres {A B : \Type} (f : A -> B)
   =>
     \Pi (b : B) -> Contr (Fibre f b)

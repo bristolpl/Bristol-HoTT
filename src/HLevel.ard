@@ -1,23 +1,41 @@
+{-
+This module contains the basic homotopy levels: what it means to be a
+mere proposition / contractible and how these definitions interact.
+ -}
 \import BristolPrelude
 
--- Basic homotopy levels
+-- -----------------------------------------------------------------------------
+-- DEFINITIONS
+-- -----------------------------------------------------------------------------
 
--- Mere propositions
--- There exists a path between every pair of points in a space.
+{- | Mere Proposition Classifier.
+-
+- This says that for a given space A, there exists a path between every pair of points.
+-
+- -}
 \func isProp (A : \Type) => \Pi (a a' : A) -> a = a'
 
--- The type class of contractible types
-
+{- | Class of Contractible types.
+ -
+ - This consists of three parts, and an attached function {make} for creating
+ - an instance of this class.
+ -
+ - -}
 \class Contr
   | A : \Type  -- Space that is contractible
   | center : A -- Point that is the centre of contraction
   | contraction : \Pi (a' : A) -> center = a' -- existence of path between every point and centre point
     \where {
-      -- QUESTION: I can see this is a constructor, but where did you find this?
       \func make {A : \Type} (a : A) (p : \Pi (a' : A) -> a = a')  => \new Contr A a p
     }
 
--- Proof that if something is contractible, then it is a mere prop
+-- -----------------------------------------------------------------------------
+-- INTERACTIONS
+-- -----------------------------------------------------------------------------
+
+{- | Converts a mere prop proof to a contractibility proof.
+ - Proof that if something is contractible, then it is a mere prop.
+ -  -}
 \func isContr=>isProp {A : \Type}
                       (c : Contr A) -- Gimme something contractible
                       : isProp A    -- I will construct a proof that it is a mere prop
@@ -34,17 +52,22 @@
     -- (c.contraction x) `inv *> c.contraction y
 
 
--- Wrapper around {isContr=>isProp} that instead takes a function that constructs
--- a contractibility proof for and A. This just applies the function and passes the
--- result on.
+{- | Wrapper around {isContr=>isProp}
+ -
+ - This expects the slightly different argument of a function that constructs
+ - a contractibility proof for and A, and just applies the function and passes the
+ - result on.
+ - -}
 \func type=>isContr=>isProp {A : \Type} (c : A -> Contr A) : isProp A
   =>
     \lam a => isContr=>isProp (c a) a
 
--- Takes a mereProp proof and creates a isContr proof from it. Since all points
--- are already all interconnected, any point can be provided as the centre of
--- contraction.
--- NOTE:- this centre point must be provided because
+{-  | Converts a contractibility proof to a mere prop proof.
+ -
+ - Since all points are already all interconnected, any point can be provided as
+ - the centre of contraction, but this point must be provided because we might
+ - not have the axiom of choice.
+ -}
 \func isProp=>isContr {A : \Type} (p : isProp A) (a : A) : Contr A
   =>
     Contr.make a (p a)
